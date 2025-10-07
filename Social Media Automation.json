@@ -1,0 +1,978 @@
+{
+  "name": "Social Media Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "=models/gemini-2.0-flash-exp-image-generation",
+          "mode": "id"
+        },
+        "prompt": "={{ $json.output['Image Prompt'] }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1136,
+        240
+      ],
+      "id": "8168f326-8bfb-4803-a30a-8ca7251d5020",
+      "name": "Generate an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "d2uStJUcaPugZXXU",
+          "name": "ragavi gemini api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1472,
+        624
+      ],
+      "id": "56f2e86f-386a-4609-8b52-685698ab237b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "d2uStJUcaPugZXXU",
+          "name": "ragavi gemini api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e9bb78dd-0b5d-447f-91db-b99578761e7f",
+              "leftValue": "data",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "bcd69ef8-82be-46e2-bdd8-1ed227c92a18",
+              "leftValue": "=data",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -912,
+        240
+      ],
+      "id": "e18e565c-b639-4fad-83e4-104e1ef0c7bc",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "text": "=Topic : {{ $json.output }} \nBased on this topic generate perfect and social media platforms based captions along with hashtags. Dont use(*) this star symbol in the output. ",
+        "attributes": {
+          "attributes": [
+            {
+              "name": " LinkedIn Caption",
+              "description": "Caption for LinkedIn Post with proper hashtags",
+              "required": true
+            },
+            {
+              "name": "Instagram Caption",
+              "description": "Caption for Instagram Post with proper hashtags",
+              "required": true
+            },
+            {
+              "name": "X Tweet",
+              "description": "Caption for X Tweet Post with proper hashtags",
+              "required": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        -2224,
+        512
+      ],
+      "id": "4e7c861c-12e8-4dad-a2bf-c90a94b5be80",
+      "name": "Text-Content-Generator"
+    },
+    {
+      "parameters": {
+        "text": "=Topic : {{ $('wait 2').item.json.output }} \n\nFrom this your task is to generate perfect image for the prompt which must be very much relevant to the prompt and it must be realistic and \nMaximum file size: 8MB\nRecommended: 1200 x 627 pixels format",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "Image Prompt",
+              "description": "Prompt of the Image. Perfect for google/models/gemini-2.0-flash-exp-image-generation|Escape all double quotes inside a JSON string with a backslash (like this: \\*)",
+              "required": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        -1472,
+        240
+      ],
+      "id": "5af0ddf2-0a6c-4310-989e-7a7a996f10f6",
+      "name": "Image-Content-Generator"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data.approved }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "36244d46-7d7f-4fd2-9023-bfac55d6fc13"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Approved"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7b03acd8-46d3-44a6-a7e2-479b392a3b63",
+                    "leftValue": "={{ $json.data.approved }}",
+                    "rightValue": "false",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Regenerate"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e7b40816-5693-470f-a579-c353869fead6",
+                    "leftValue": "={{ $json.data.approved }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "No Action"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1760,
+        256
+      ],
+      "id": "26de2b07-4f32-4cda-9240-cd92b3d9ceab",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "ragavis@advantixagi.com",
+        "subject": "=Approval for Social Media Content post",
+        "message": "=<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Social Media Captions</title>\n  <style>\n    /* Google Fonts */\n    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');\n    body {\n      font-family: 'Inter', sans-serif;\n      background: linear-gradient(135deg, #e0f7fa, #e3f2fd);\n      margin: 0;\n      padding: 20px;\n      display: flex;\n      justify-content: center;\n      align-items: center;\n      min-height: 100vh;\n    }\n    .container {\n      background: #fff;\n      padding: 40px;\n      border-radius: 20px;\n      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);\n      max-width: 850px;\n      width: 100%;\n      animation: fadeIn 0.8s ease-in-out;\n    }\n    h1 {\n      color: #0d47a1;\n      text-align: center;\n      margin-bottom: 35px;\n      font-size: 2.2rem;\n      font-weight: 700;\n      position: relative;\n    }\n    h1::after {\n      content: \"\";\n      width: 80px;\n      height: 4px;\n      background: #0d47a1;\n      display: block;\n      margin: 10px auto 0;\n      border-radius: 2px;\n    }\n    .section {\n      margin-bottom: 25px;\n      background: #f5f9ff;\n      border-left: 6px solid #0d47a1;\n      padding: 18px 20px;\n      border-radius: 12px;\n      transition: transform 0.2s ease, box-shadow 0.2s ease;\n    }\n    .section:hover {\n      transform: translateY(-3px);\n      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);\n    }\n    .section-title {\n      font-weight: 600;\n      font-size: 1.05rem;\n      color: #0d47a1;\n      margin-bottom: 8px;\n      display: flex;\n      align-items: center;\n      gap: 8px;\n    }\n    .section-title::before {\n      content: \"💡\";\n      font-size: 1.2rem;\n    }\n    p {\n      margin: 0;\n      line-height: 1.6;\n      color: #444;\n      font-size: 0.95rem;\n    }\n    .image-container {\n      text-align: center;\n      margin-top: 40px;\n      border-top: 2px dashed #bbb;\n      padding-top: 25px;\n    }\n    .image-container .section-title {\n      justify-content: center;\n      margin-bottom: 15px;\n    }\n    .image-container img {\n      max-width: 100%;\n      border-radius: 15px;\n      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);\n      transition: transform 0.3s ease;\n    }\n    .image-container img:hover {\n      transform: scale(1.03);\n    }\n    /* Animation */\n    @keyframes fadeIn {\n      from {\n        opacity: 0;\n        transform: translateY(15px);\n      }\n      to {\n        opacity: 1;\n        transform: translateY(0);\n      }\n    }\n  </style>\n</head>\n<body>\n<div class=\"container\">\n  <h1>✨ Social Media Content ✨</h1>\n  <div class=\"section\">\n    <div class=\"section-title\">Instagram Caption</div>\n    <p>{{ $('Text-Content-Generator').item.json.output['Instagram Caption'] }}</p>\n  </div>\n  <div class=\"section\">\n    <div class=\"section-title\">LinkedIn Caption</div>\n    <p>{{ $('Text-Content-Generator').item.json.output[' LinkedIn Caption'] }}</p>\n  </div>\n  <div class=\"section\">\n    <div class=\"section-title\">Tweet</div>\n    <p>{{ $('Text-Content-Generator').item.json.output['X Tweet'] }}</p>\n  </div>\n  \n  </div>\n</div>\n</body>\n</html>",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "disapproveLabel": "Regenerate",
+            "buttonDisapprovalStyle": "primary"
+          }
+        },
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 10,
+              "resumeUnit": "minutes"
+            }
+          },
+          "appendAttribution": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1984,
+        272
+      ],
+      "id": "87669be1-8460-4319-95fb-76ba4dfb20e0",
+      "name": "Send-message",
+      "webhookId": "cd7468d8-a844-48e5-80a0-2aaa38a24907",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "b018NC0IJD6dlFOM",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=you are an worthy social media assistant your job is to take the content from {{ $json['Media Post Links'] }} and give me only the topic strictly in a json format\nexpected output format:\n{\n    \"topic\":\"the topic you have fetched eg: ai vs humans\"\n}\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -2768,
+        512
+      ],
+      "id": "497f5ca6-3d29-49fa-bfd3-3b39d2ea853d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2768,
+        704
+      ],
+      "id": "f5cf24c7-19f4-47a3-9ff4-267b7b854814",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "d2uStJUcaPugZXXU",
+          "name": "ragavi gemini api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst binaryData = items[0].binary.data; \nconst base64String = binaryData.data.toString('base64');\n\nreturn [\n  {\n    json: {\n      base64: `data:${binaryData.mimeType};base64,${base64String}`\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        32
+      ],
+      "id": "7373a77b-ab50-45a0-a943-ffc04befed1b",
+      "name": "base65 converter"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudinary.com/v1_1/dde0oocbg/image/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file",
+              "value": "={{ $json.base64 }}"
+            },
+            {
+              "name": "upload_preset",
+              "value": "n8n_unsigned_upload"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        144,
+        32
+      ],
+      "id": "9db79bc8-df2b-4502-b7e6-dfdcc846da9a",
+      "name": "Cloudinary Image Upload"
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "17841477741612529",
+        "edge": "media_publish",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "creation_id",
+                "value": "={{ $json.id }}"
+              },
+              {
+                "name": "image_url",
+                "value": "={{ $('Set to IG').item.json.image_url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $('Set to IG').item.json.caption }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        768,
+        32
+      ],
+      "id": "d0aef25d-7627-4a49-b6b9-6e1756554087",
+      "name": "Post to IG",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "zowpBIB3GCGD5B0d",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpRequestMethod": "POST",
+        "graphApiVersion": "v23.0",
+        "node": "={{ $json.node }}",
+        "edge": "media",
+        "options": {
+          "queryParameters": {
+            "parameter": [
+              {
+                "name": "image_url",
+                "value": "={{ $json.image_url }}"
+              },
+              {
+                "name": "caption",
+                "value": "={{ $json.caption }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        560,
+        32
+      ],
+      "id": "2da9be3b-d001-4185-8010-d675081500c8",
+      "name": "Container IG",
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "zowpBIB3GCGD5B0d",
+          "name": "Facebook Graph account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a047ad53-7abf-4e2d-8e1c-b232b70146cd",
+              "name": "image_url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "b162ab3f-9273-43f8-a7e2-a18420c93113",
+              "name": "caption",
+              "value": "={{ $('Text-Content-Generator').item.json.output['Instagram Caption'] }}",
+              "type": "string"
+            },
+            {
+              "id": "c8d5347a-1ab2-46d1-bab5-c698b051e37d",
+              "name": "node",
+              "value": "17841477741612529",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        352,
+        32
+      ],
+      "id": "a2cdcda7-a34b-436e-8323-ca9aee1da22c",
+      "name": "Set to IG"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://upload.twitter.com/1.1/media/upload.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth1Api",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "media",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -96,
+        208
+      ],
+      "id": "c503671c-870e-4c68-8e12-4fc55deafbcb",
+      "name": "X - media ID",
+      "credentials": {
+        "oAuth1Api": {
+          "id": "MvpBhlwxAhg5ZVsM",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1HqrO4fVAWv7cwgTKRtRPMBrTyKVLgwjBRoNTqTR6Acs",
+          "mode": "list",
+          "cachedResultName": "Media Links",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HqrO4fVAWv7cwgTKRtRPMBrTyKVLgwjBRoNTqTR6Acs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HqrO4fVAWv7cwgTKRtRPMBrTyKVLgwjBRoNTqTR6Acs/edit#gid=0"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3488,
+        512
+      ],
+      "id": "8a886986-e410-4ce7-8690-f8cfe41b698d",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "Q3rt0ZleZoZWu582",
+          "name": "Google Sheets Trigger account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all the input items (articles)\nconst articles = $input.all();\n\n// Get the most recent article (assuming it's the last one in the array)\nconst latestArticle = articles[articles.length - 1];\n\n// Return the most recent article as the output for the next node\nreturn latestArticle;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3280,
+        512
+      ],
+      "id": "e659b63e-7db3-4325-8a22-497bcd4cf46d",
+      "name": "Latest media"
+    },
+    {
+      "parameters": {
+        "person": "7EhIk0xLET",
+        "text": "={{ $('Text-Content-Generator').item.json.output[' LinkedIn Caption'] }}",
+        "shareMediaCategory": "IMAGE",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        416
+      ],
+      "id": "f3e400a2-c403-4392-a667-0e1c992d8b19",
+      "name": "Post to Linkedln",
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "LiQJoq0dRljzhIw5",
+          "name": "LinkedIn account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $('Text-Content-Generator').item.json.output['X Tweet'] }}",
+        "additionalFields": {
+          "attachments": "={{ $json.media_id_string }}"
+        }
+      },
+      "type": "n8n-nodes-base.twitter",
+      "typeVersion": 2,
+      "position": [
+        144,
+        208
+      ],
+      "id": "748f5cf0-20f4-41e1-9fa8-c3238220295f",
+      "name": "Post to X",
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "AEkmV22zVN9yLVOU",
+          "name": "X account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -3072,
+        512
+      ],
+      "id": "0cb91b8b-f4b9-42cb-aa11-f484033c00a8",
+      "name": "wait 1",
+      "webhookId": "39b7e9b0-42a5-4a04-acc8-f40bcd014518"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -2464,
+        512
+      ],
+      "id": "b841bff5-aad2-46e2-a5bc-0c31f602e8a9",
+      "name": "wait 2",
+      "webhookId": "174efe1b-258b-4112-ac91-32b682600e6a"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -592,
+        224
+      ],
+      "id": "0be39f2b-dc56-4f0f-9ebe-24400f6cad9a",
+      "name": "wait 3",
+      "webhookId": "e47faa40-f34e-4549-9c53-3a4451f34497"
+    },
+    {
+      "parameters": {
+        "sendTo": "ragavis@advantixagi.com",
+        "subject": "Your Daily Social Media Update is Live!",
+        "message": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Social Media Content Posted Successfully</title>\n</head>\n<body style=\"margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f4f4;\">\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background-color: #f4f4f4; padding: 20px 0;\">\n        <tr>\n            <td align=\"center\">\n                <table width=\"600\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);\">\n                    \n                    <!-- Header Section -->\n                    <tr>\n                        <td style=\"background-color: #7c3aed; padding: 40px 30px; text-align: center;\">\n                            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n                                <tr>\n                                    <td align=\"center\">\n                                        <!-- Success Checkmark -->\n                                        <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin: 0 auto 20px;\">\n                                            <tr>\n                                                <td align=\"center\">\n                                                    <div style=\"width: 80px; height: 80px; background-color: #ffffff; border-radius: 50%; display: inline-block; text-align: center; line-height: 80px;\">\n                                                        <span style=\"color: #4caf50; font-size: 50px; font-weight: bold;\">✓</span>\n                                                    </div>\n                                                </td>\n                                            </tr>\n                                        </table>\n                                        \n                                        <h1 style=\"color: #ffffff; font-size: 28px; margin: 0 0 10px 0; font-weight: 600;\">Content Posted Successfully! 🎉</h1>\n                                        <p style=\"color: #ffffff; font-size: 16px; margin: 0;\">Your social media content is now live</p>\n                                    </td>\n                                </tr>\n                            </table>\n                        </td>\n                    </tr>\n                    \n                    <!-- Content Section -->\n                    <tr>\n                        <td style=\"padding: 40px 30px;\">\n                            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n                                <tr>\n                                    <td style=\"text-align: center; padding-bottom: 30px;\">\n                                        <h2 style=\"color: #333333; font-size: 22px; margin: 0 0 12px 0;\">Great News!</h2>\n                                        <p style=\"color: #666666; font-size: 15px; line-height: 1.6; margin: 0;\">Your scheduled content for today has been successfully published across all your social media platforms. Your audience can now engage with your latest post!</p>\n                                    </td>\n                                </tr>\n                                \n                                <!-- Social Media Links -->\n                                <tr>\n                                    <td align=\"center\" style=\"padding: 20px 0;\">\n                                        <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n                                            <tr>\n                                                <!-- Instagram -->\n                                                <td style=\"padding: 0 15px;\">\n                                                    <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n                                                        <tr>\n                                                            <td align=\"center\">\n                                                                <a href=\"https://www.instagram.com/advantixagi2025/\" target=\"_blank\" style=\"text-decoration: none;\">\n                                                                    <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n                                                                        <tr>\n                                                                            <td style=\"width: 60px; height: 60px; background-color: #E4405F; border-radius: 12px; text-align: center; vertical-align: middle;\">\n                                                                                <img src=\"https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png\" width=\"35\" height=\"35\" alt=\"Instagram\" style=\"display: block; margin: 12px auto;\" />\n                                                                            </td>\n                                                                        </tr>\n                                                                        <tr>\n                                                                            <td style=\"padding-top: 8px; text-align: center;\">\n                                                                                <span style=\"font-size: 13px; color: #666666; font-weight: 500;\">Instagram</span>\n                                                                            </td>\n                                                                        </tr>\n                                                                    </table>\n                                                                </a>\n                                                            </td>\n                                                        </tr>\n                                                    </table>\n                                                </td>\n                                                \n                                                <!-- LinkedIn -->\n                                                <td style=\"padding: 0 15px;\">\n                                                    <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n                                                        <tr>\n                                                            <td align=\"center\">\n                                                                <a href=\"https://www.linkedin.com/in/ai-frontier-4b97a8387/\" target=\"_blank\" style=\"text-decoration: none;\">\n                                                                    <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n                                                                        <tr>\n                                                                            <td style=\"width: 60px; height: 60px; background-color: #0077b5; border-radius: 12px; text-align: center; vertical-align: middle;\">\n                                                                                <img src=\"https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png\" width=\"32\" height=\"32\" alt=\"LinkedIn\" style=\"display: block; margin: 14px auto;\" />\n                                                                            </td>\n                                                                        </tr>\n                                                                        <tr>\n                                                                            <td style=\"padding-top: 8px; text-align: center;\">\n                                                                                <span style=\"font-size: 13px; color: #666666; font-weight: 500;\">LinkedIn</span>\n                                                                            </td>\n                                                                        </tr>\n                                                                    </table>\n                                                                </a>\n                                                            </td>\n                                                        </tr>\n                                                    </table>\n                                                </td>\n                                                \n                                                <!-- Twitter X -->\n                                                <td style=\"padding: 0 15px;\">\n                                                    <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n                                                        <tr>\n                                                            <td align=\"center\">\n                                                                <a href=\"https://x.com/AIFrontierAGI\" target=\"_blank\" style=\"text-decoration: none;\">\n                                                                    <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n                                                                        <tr>\n                                                                            <td style=\"width: 60px; height: 60px; background-color: #000000; border-radius: 12px; text-align: center; vertical-align: middle;\">\n                                                                                <img src=\"https://upload.wikimedia.org/wikipedia/commons/5/57/X_logo_2023_%28white%29.png\" width=\"28\" height=\"28\" alt=\"X\" style=\"display: block; margin: 16px auto;\" />\n                                                                            </td>\n                                                                        </tr>\n                                                                        <tr>\n                                                                            <td style=\"padding-top: 8px; text-align: center;\">\n                                                                                <span style=\"font-size: 13px; color: #666666; font-weight: 500;\">Twitter (X)</span>\n                                                                            </td>\n                                                                        </tr>\n                                                                    </table>\n                                                                </a>\n                                                            </td>\n                                                        </tr>\n                                                    </table>\n                                                </td>\n                                            </tr>\n                                        </table>\n                                    </td>\n                                </tr>\n                            </table>\n                        </td>\n                    </tr>\n                    \n                    <!-- Footer Section -->\n                    <tr>\n                        <td style=\"background-color: #f8f9fa; padding: 25px 30px; text-align: center; border-top: 1px solid #e9ecef;\">\n                            <p style=\"color: #6c757d; font-size: 13px; line-height: 1.6; margin: 0;\">\n                                Click on any platform icon above to view your post<br>\n                                Keep up the great work with your content strategy!\n                            </p>\n                        </td>\n                    </tr>\n                    \n                </table>\n            </td>\n        </tr>\n    </table>\n</body>\n</html>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1264,
+        384
+      ],
+      "id": "47f9ab42-c346-4e30-a573-4ed48e47a735",
+      "name": "Send a message",
+      "webhookId": "4f5e19bc-28c6-4a52-a000-997ee0857c6f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "b018NC0IJD6dlFOM",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1056,
+        368
+      ],
+      "id": "d8aef79a-5d51-4401-878e-a23642bba9b0",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text-Content-Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Image-Content-Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "wait 3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Text-Content-Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text-Content-Generator": {
+      "main": [
+        [
+          {
+            "node": "Send-message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image-Content-Generator": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Image-Content-Generator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send-message": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "wait 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "base65 converter": {
+      "main": [
+        [
+          {
+            "node": "Cloudinary Image Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cloudinary Image Upload": {
+      "main": [
+        [
+          {
+            "node": "Set to IG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Container IG": {
+      "main": [
+        [
+          {
+            "node": "Post to IG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set to IG": {
+      "main": [
+        [
+          {
+            "node": "Container IG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "X - media ID": {
+      "main": [
+        [
+          {
+            "node": "Post to X",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Latest media",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Latest media": {
+      "main": [
+        [
+          {
+            "node": "wait 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait 1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait 2": {
+      "main": [
+        [
+          {
+            "node": "Text-Content-Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait 3": {
+      "main": [
+        [
+          {
+            "node": "X - media ID",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Post to Linkedln",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "base65 converter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Post to IG": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to X": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Post to Linkedln": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "289cec04-310b-4286-ac81-1171c1dab611",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5229ad676c3a8d293c6db345f673ae85f2faeec97332d940e6b8ecea4c050d50"
+  },
+  "id": "MiGROPuxYrR3BX2a",
+  "tags": []
+}
